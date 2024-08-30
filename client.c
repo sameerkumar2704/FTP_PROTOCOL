@@ -1,34 +1,42 @@
-#include<stdio.h>
+#include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <arpa/inet.h>
 #include "./headers/create_socket.h"
 
-#define PORT_NO  9002
-int createClient(){
+#define PORT_NO 9002
+int createClient()
+{
     int network_socket = createTcpSocket();
+    struct sockaddr_in *socket_address = createTcpIpV4SocketAddress("", PORT_NO);
+    int connection_status = connect(network_socket, (struct sockaddr *)socket_address, sizeof(*socket_address));
 
-    struct sockaddr_in * client_sock_address =  createTcpIpV4SocketAddress("", PORT_NO);
-
-
-    int connection_status = connect( network_socket , (struct sockaddr*)client_sock_address ,  sizeof(*client_sock_address));
-    FILE *file = fopen("./testing_data/recieve.txt" ,"w");
-    if(connection_status == -1) {
-    printf("somethig went wrong\n");
-    fclose(file);
-    close(network_socket);
-    return -1;
-
+    if (connection_status == -1)
+    {
+        printf("somethig went wrong\n");
+        close(network_socket);
+        return -1;
     }
-    char message[300];
-    int file_count = recv(network_socket , message , sizeof(message)-1 , 0);
-    fputs( message , file);
+
+    FILE *file = fopen("./client_data/file.zip", "wb");
+
+    char message[1024];
+    int n = 0;
+    while ((n = recv(network_socket, message, sizeof(message), 0)) > 0)
+    {
+        fwrite(message, sizeof(char), n, file);
+        printf("%s\n", message);
+    }
 
     fclose(file);
     close(network_socket);
+
     return 1;
 }
-int main(){
-	createClient();
-return -1; }
+int main()
+{
+    createClient();
+    return -1;
+}

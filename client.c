@@ -3,27 +3,30 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include "./headers/create_socket.h"
 
-
+#define PORT_NO  9002
 int createClient(){
-    int network_socket;
-    network_socket = socket(AF_INET , SOCK_STREAM , 0);
+    int network_socket = createTcpSocket();
 
-    struct sockaddr_in client_sock_address;
-    client_sock_address.sin_family  = AF_INET;
-    client_sock_address.sin_port = htons(9002);
-    client_sock_address.sin_addr.s_addr = INADDR_ANY;
+    struct sockaddr_in * client_sock_address =  createTcpIpV4SocketAddress("", PORT_NO);
 
-    int connection_status = connect( network_socket , (struct sockaddr*)&client_sock_address ,  sizeof(client_sock_address));
+
+    int connection_status = connect( network_socket , (struct sockaddr*)client_sock_address ,  sizeof(*client_sock_address));
+    FILE *file = fopen("./testing_data/recieve.txt" ,"w");
     if(connection_status == -1) {
     printf("somethig went wrong\n");
-  
-    }
-
-    char message[300];
-    read(network_socket , message , sizeof(message)-1);
+    fclose(file);
     close(network_socket);
-    printf("%s"  , message);
+    return -1;
+
+    }
+    char message[300];
+    int file_count = recv(network_socket , message , sizeof(message)-1 , 0);
+    fputs( message , file);
+
+    fclose(file);
+    close(network_socket);
     return 1;
 }
 int main(){

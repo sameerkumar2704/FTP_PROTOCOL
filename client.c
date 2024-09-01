@@ -3,11 +3,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include "./headers/create_socket.h"
 #include "string.h"
 
 #define PORT_NO 9002
+#define buffer_size 1024
 int createClient()
 {
     int network_socket = createTcpSocket();
@@ -22,16 +24,18 @@ int createClient()
     }
 
     // FILE *file = fopen("./client_data/file.zip", "wb");
-
-    char message[1024];
+    char buffer[buffer_size];
     int n = 0;
-    send(network_socket, "say to others", 256, 0);
-    // while ((n = recv(network_socket, message, sizeof(message), 0)) > 0)
-    // {
+    int recived_message_len = recv(network_socket, buffer, buffer_size - 1, 0);
+    buffer[recived_message_len] = '\0';
+    printf("your data :%s \n", buffer);
+    buffer[recived_message_len] = 0;
+    while ((n = recv(network_socket, buffer, buffer_size - 1, 0)) > 0)
+    {
 
-    //     // fwrite(message, sizeof(char), n, file);
-    //     printf("%s %d\n", message, n);
-    // }
+        // fwrite(message, sizeof(char), n, file);
+        printf("%s %d\n", buffer, n);
+    }
 
     // fclose(file);
     shutdown(network_socket, SHUT_RDWR);

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include "./headers/create_socket.h"
+#include "string.h"
 
 #define PORT_NO 9002
 int createClient()
@@ -20,17 +21,20 @@ int createClient()
         return -1;
     }
 
-    FILE *file = fopen("./client_data/file.zip", "wb");
+    // FILE *file = fopen("./client_data/file.zip", "wb");
 
     char message[1024];
     int n = 0;
-    while ((n = recv(network_socket, message, sizeof(message), 0)) > 0)
-    {
-        fwrite(message, sizeof(char), n, file);
-        printf("%s\n", message);
-    }
+    send(network_socket, "say to others", 256, 0);
+    // while ((n = recv(network_socket, message, sizeof(message), 0)) > 0)
+    // {
 
-    fclose(file);
+    //     // fwrite(message, sizeof(char), n, file);
+    //     printf("%s %d\n", message, n);
+    // }
+
+    // fclose(file);
+    shutdown(network_socket, SHUT_RDWR);
     close(network_socket);
 
     return 1;

@@ -17,6 +17,18 @@ extern int errno;
 int server_network = -1; // server id
 
 ClientList *header = NULL;
+void broadCastToALLUser(char *message, ClientList *parent)
+{
+   ClientList *curr = header;
+   while (curr != NULL)
+   {
+      if (curr != parent)
+      {
+         sendMessage(curr->client_id, message);
+      }
+      curr = curr->next_user;
+   }
+}
 void *Error_Handling(void *pointer, int LineNumber, char *FileName)
 {
    if (pointer == NULL)
@@ -50,17 +62,32 @@ void *connectReceverToClient(void *node)
    int client_id = curr_node->client_id;
    char message[256];
    int n = -1;
-   if (header != curr_node)
+   while ((n = recv(client_id, message, sizeof(message), 0)) > 0)
    {
-      printf("%s\n", message);
-      send(header->client_id, "hellow from sameer", 256, 0);
    }
-   // while ((n = recv(client_id, message, sizeof(message), 0)) > 0)
-   // {
-   // }
    if (n == 0)
    {
-      perror("client disconnect");
+      ClientList *element = findClient(header, curr_node);
+      if (element != NULL)
+         printf("found element\n");
+      header = removeClient(header, curr_node);
+      element = findClient(header, curr_node);
+
+      if (element == NULL)
+         printf("node removed\n");
+
+      ClientList *curr = header;
+      while (curr != NULL)
+      {
+
+         char disconnect_messag[1024] = "user id - ";
+         snprintf(disconnect_messag, 32, "connecte id - %d", curr->client_id);
+         broadCastToALLUser(disconnect_messag, curr);
+
+         curr = curr->next_user;
+      }
+
+      perror("client disconnect ");
    }
 }
 

@@ -34,7 +34,8 @@ int createClient()
     {
 
         // fwrite(message, sizeof(char), n, file);
-        printf("%s %d\n", buffer, n);
+        buffer[n] = '\0';
+        printf("%s \n", buffer);
     }
 
     // fclose(file);

@@ -1,11 +1,4 @@
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-#include "string.h"
-#include <stdio.h>
+#include "../headers/create_socket.h"
 
 int createTcpSocket()
 {

@@ -28,24 +28,25 @@ void addNewClient(ClientList *header, ClientList *new_client)
 
     prev->next_user = new_client;
 }
-ClientList *findClient(ClientList *header, int target_user)
+ClientList *findClient(ClientList *header, ClientList* target_user)
 {
     ClientList *curr = header;
     while (curr != NULL)
     {
-        if (curr->client_id == target_user)
+        if (curr == target_user)
             return curr;
         curr = curr->next_user;
     }
     return NULL;
 }
-ClientList *removeClient(ClientList *header, int disconnect_client)
+ClientList *removeClient(ClientList *header, ClientList* disconnect_client)
 {
+    if(header == disconnect_client) return header->next_user;
     ClientList *curr = header;
     ClientList *prev = NULL;
     while (curr != NULL)
     {
-        if (curr->client_id == disconnect_client)
+        if (curr == disconnect_client)
         {
             break;
         }

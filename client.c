@@ -3,21 +3,14 @@
 #include "string.h"
 #include <pthread.h>
 #include "./headers/file_zip.h"
-#include <dirent.h>
+#include "./headers/reuse_func.h"
 #define PORT_NO 9002
 #define buffer_size 1024
 int network_socket = -1;
 int selected_id = -1;
 char dir[buffer_size];
 char file_name[buffer_size];
-enum
-{
-    SHOW_ALL_USERS,
-    READ_TO_RECIVE_DATA,
-    SERVER_SHUT_DOWN,
-    SELECT_USER,
-    ABORT_DATA_SENDING,
-};
+
 int findingCommandType(char *command)
 {
     if (!strcmp(command, "show-all-users\n"))
@@ -47,31 +40,18 @@ int findingCommandType(char *command)
 }
 void zipe_file_to_send_server(char *sourc_file, char *file_name)
 {
+    //compressing file before transfer
     zip_files("transfer_file.zip", sourc_file, file_name);
     printf(" file %s zip as transfer_file.zip\n", file_name);
 
-    char server_message[1024];
-    FILE *f = fopen("transfer_file.zip", "rb");
-    fseek(f, 0, SEEK_END);
-    long file_size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    send(network_socket, &file_size, sizeof(file_size), 0);
-    int size;
-    while (1)
-    {
-        int size = fread(server_message, sizeof(char), sizeof(server_message), f);
-        if (size == 0)
-            break;
-        int status = send(network_socket, server_message, size, 0);
-        if (status == -1)
-        {
-            perror("Data not send :");
-            return;
-        }
-        printf("%s\n", server_message);
+    // calling custom functions from reuse_func.h
+    int status = sendFile(file_name , network_socket);
+    if(status <0 ){
+        perror("file not send to server : ");
+        remove("./transfer_file.zip");
+        return ;
     }
     printf("Data is send to server \n");
-    fclose(f);
     remove("./transfer_file.zip");
 }
 void sendCommandToServer(int commandType)
@@ -105,25 +85,11 @@ void fileReciver()
     char buffer[buffer_size];
     recv(network_socket, &size_of_file, sizeof(size_of_file), 0);
     printf("file size : %ld\n", size_of_file);
-    const char *dir_path = "./client_data"; // Current directory
-    DIR *dir;
-    struct dirent *entry;
-    int file_count = 0;
-
-    dir = opendir(dir_path);
-    if (dir == NULL)
-    {
-        perror("opendir");
-        return;
-    }
-
-    while ((entry = readdir(dir)) != NULL)
-    {
-        // Ignore directories '.' and '..'
-        if (entry->d_type == DT_REG)
-        { // Regular file
-            file_count++;
-        }
+    char *dir_path = "./client_data"; // Current directory
+    int file_count  = getNumberofFileInFolder(dir_path);
+    if(file_count < 0){
+        printf("file is counted\n");
+        return ;
     }
     char file_name[1024];
     snprintf(file_name, sizeof(file_name), "./client_data/file_%d.zip", file_count);
@@ -150,6 +116,10 @@ void *serverResponseHandler()
     while (1)
     {
         n = recv(network_socket, buffer, sizeof(buffer), 0);
+        if(n<0){
+            perror("recv prot : ");
+            break;
+        }
 
         if (!strcmp("server-down", buffer) || n == 0)
         {
@@ -169,7 +139,7 @@ void *serverResponseHandler()
         else
         {
             printf("server res : %s\n", buffer);
-            if (!strncmp(buffer, "yes", strlen("yes")))
+            if (!strcmp(buffer, "sending-file"))
             {
                 fileReciver();
             }

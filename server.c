@@ -6,20 +6,14 @@
 #include <pthread.h>
 #include "./headers/store_user.h"
 #include "./headers/file_zip.h"
+#include "./headers/reuse_func.h"
 #include <dirent.h>
 
 extern int errno;
 #define PORT_NO 9002
 #define LINE_NUMBER __LINE__
 #define FILE_NAME __FILE__
-enum
-{
-   SHOW_ALL_USERS,
-   READ_TO_RECIVE_DATA,
-   SERVER_SHUT_DOWN,
-   SELECT_USER,
-   ABORT_DATA_SENDING,
-};
+
 int server_network = -1; // server id
 
 ClientList *header = NULL;
@@ -64,31 +58,16 @@ void *Error_Handling(void *pointer, int LineNumber, char *FileName)
    return pointer;
 }
 
-void sendFile(int client_socket ,char *file_name)
+void fileTransfer(int client_socket ,char *file_name)
 {
-   char server_message[1024];
-
-   FILE *f = fopen(file_name, "rb");
-   fseek(f, 0, SEEK_END);
-   long file_size = ftell(f);
-   fseek(f, 0, SEEK_SET);
-   send(client_socket, &file_size, sizeof(file_size), 0);
-   int size;
-   while (1)
-   {
-      int size = fread(server_message, sizeof(char), sizeof(server_message), f);
-      if (size == 0)
-         break;
-      int status = send(client_socket, server_message, size, 0);
-      if (status == -1)
-      {
-         perror("Data not send :");
-         return;
-      }
-      printf("%s\n", server_message);
+   int status = sendFile(file_name , client_socket);
+   if(status <0 ){
+      perror("file is send :");
+      remove(file_name);
+      return;
    }
+  
    printf("Data is send to client \n");
-   fclose(f);
    remove(file_name);
 }
 
@@ -110,26 +89,8 @@ void fileReciver(int client_id, int network_socket)
 {
    long size_of_file;
    char buffer[1024];
-   const char *dir_path = "."; // Current directory
-   DIR *dir;
-   struct dirent *entry;
-   int file_count = 0;
-
-   dir = opendir(dir_path);
-   if (dir == NULL)
-   {
-      perror("opendir");
-      return ;
-   }
-
-   while ((entry = readdir(dir)) != NULL)
-   {
-      // Ignore directories '.' and '..'
-      if (entry->d_type == DT_REG)
-      { // Regular file
-         file_count++;
-      }
-   }
+   char *dir_path = "."; // Current directory
+   int file_count  = getNumberofFileInFolder(dir_path);
    recv(network_socket, &size_of_file, sizeof(size_of_file), 0);
    printf("file server %ld\n", size_of_file);
    char file_name[1024] ;
@@ -137,10 +98,9 @@ void fileReciver(int client_id, int network_socket)
 
    FILE *file = fopen(file_name, "wb");
    long curr_size = 0;
-   char message[1024] = "yes";
+   char message[1024] = "sending-file";
    sendMessage(client_id, message);
 
-   char *data[size_of_file / 1024];
    int i = 0;
    while (curr_size < size_of_file)
    {
@@ -150,8 +110,8 @@ void fileReciver(int client_id, int network_socket)
    }
    fclose(file);
 
-   sendFile(client_id , file_name);
-   printf("file completly send to user %d", client_id);
+   fileTransfer(client_id , file_name);
+   printf("file completly send to user %d\n", client_id);
 }
 void *connectReceverToClient(void *node)
 {
@@ -167,7 +127,6 @@ void *connectReceverToClient(void *node)
       {
          recv(client_id, &selected_user_to_send_data, sizeof(selected_user_to_send_data), 0);
          fileReciver(selected_user_to_send_data, client_id);
-         printf("end\n");
       }
    }
    if (n == 0)

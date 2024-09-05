@@ -3,7 +3,7 @@
 #include "string.h"
 #include <pthread.h>
 #include "./headers/file_zip.h"
-
+#include <dirent.h>
 #define PORT_NO 9002
 #define buffer_size 1024
 int network_socket = -1;
@@ -105,7 +105,29 @@ void fileReciver()
     char buffer[buffer_size];
     recv(network_socket, &size_of_file, sizeof(size_of_file), 0);
     printf("file size : %ld\n", size_of_file);
-    FILE *file = fopen("./client_data/file.zip", "wb");
+    const char *dir_path = "./client_data"; // Current directory
+    DIR *dir;
+    struct dirent *entry;
+    int file_count = 0;
+
+    dir = opendir(dir_path);
+    if (dir == NULL)
+    {
+        perror("opendir");
+        return;
+    }
+
+    while ((entry = readdir(dir)) != NULL)
+    {
+        // Ignore directories '.' and '..'
+        if (entry->d_type == DT_REG)
+        { // Regular file
+            file_count++;
+        }
+    }
+    char file_name[1024];
+    snprintf(file_name, sizeof(file_name), "./client_data/file_%d.zip", file_count);
+    FILE *file = fopen(file_name, "wb");
     long curr_size = 0;
     while (curr_size < size_of_file)
     {
@@ -114,7 +136,7 @@ void fileReciver()
         curr_size += byte_size;
     }
     fclose(file);
-    unzip_file("./result");
+    unzip_file("./result" , file_name);
 }
 void closeSocket()
 {

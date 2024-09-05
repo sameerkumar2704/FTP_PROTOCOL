@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include "./headers/store_user.h"
 #include "./headers/file_zip.h"
+#include <dirent.h>
 
 extern int errno;
 #define PORT_NO 9002
@@ -63,10 +64,11 @@ void *Error_Handling(void *pointer, int LineNumber, char *FileName)
    return pointer;
 }
 
-void sendFile(int client_socket)
+void sendFile(int client_socket ,char *file_name)
 {
    char server_message[1024];
-   FILE *f = fopen("temp.zip", "rb");
+
+   FILE *f = fopen(file_name, "rb");
    fseek(f, 0, SEEK_END);
    long file_size = ftell(f);
    fseek(f, 0, SEEK_SET);
@@ -87,7 +89,7 @@ void sendFile(int client_socket)
    }
    printf("Data is send to client \n");
    fclose(f);
-   remove("temp.zip");
+   remove(file_name);
 }
 
 void sendRespnceToCommand(int command, int socket, ClientList *node)
@@ -106,17 +108,39 @@ void sendRespnceToCommand(int command, int socket, ClientList *node)
 }
 void fileReciver(int client_id, int network_socket)
 {
-   long  size_of_file ;
+   long size_of_file;
    char buffer[1024];
+   const char *dir_path = "."; // Current directory
+   DIR *dir;
+   struct dirent *entry;
+   int file_count = 0;
 
+   dir = opendir(dir_path);
+   if (dir == NULL)
+   {
+      perror("opendir");
+      return ;
+   }
+
+   while ((entry = readdir(dir)) != NULL)
+   {
+      // Ignore directories '.' and '..'
+      if (entry->d_type == DT_REG)
+      { // Regular file
+         file_count++;
+      }
+   }
    recv(network_socket, &size_of_file, sizeof(size_of_file), 0);
    printf("file server %ld\n", size_of_file);
-   FILE *file = fopen("temp.zip", "wb");
+   char file_name[1024] ;
+   snprintf(file_name ,sizeof(file_name)  , "temp_%d.zip" ,file_count );
+
+   FILE *file = fopen(file_name, "wb");
    long curr_size = 0;
    char message[1024] = "yes";
    sendMessage(client_id, message);
-  
-   char* data[size_of_file/1024];
+
+   char *data[size_of_file / 1024];
    int i = 0;
    while (curr_size < size_of_file)
    {
@@ -125,8 +149,8 @@ void fileReciver(int client_id, int network_socket)
       curr_size += byte_size;
    }
    fclose(file);
- 
-   sendFile(client_id);
+
+   sendFile(client_id , file_name);
    printf("file completly send to user %d", client_id);
 }
 void *connectReceverToClient(void *node)

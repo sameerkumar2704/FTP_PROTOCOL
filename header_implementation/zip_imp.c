@@ -10,12 +10,12 @@ void zip_files(char *destination , char* source_file , char * file_name)
    zip_close(zip);
 }
 
-void unzip_file(char *dir){
+void unzip_file(char *dir , char *file_path){
     int errorp  = 0;
     mkdir(dir , 0775);
     char path[1024];
   
-    zip_t* arch = zip_open("./client_data/file.zip" , 0, &errorp);
+    zip_t* arch = zip_open(file_path , 0, &errorp);
     struct zip_stat* finfo = calloc(256 , sizeof(int));
     zip_stat_init(finfo);
     zip_file_t* fd = NULL;

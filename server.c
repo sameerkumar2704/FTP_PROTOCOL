@@ -26,14 +26,15 @@ void sendListOfUser(int socket, ClientList *node)
       if (curr != node)
       {
          char buffer[1024];
-         snprintf(buffer, sizeof(buffer), "user id - %d", curr->client_id);
+         snprintf(buffer, sizeof(buffer), " %d. reciver address %d",count+1 ,  curr->client_id);
          sendMessage(socket, buffer);
+         count++;
       }
-      count++;
+     
       curr = curr->next_user;
    }
-   if (count == 1)
-      sendMessage(socket, "no user other than you");
+   if (count == 0)
+      sendMessage(socket, "no reciver found");
 }
 
 void broadCastToALLUser(char *message, ClientList *parent)
@@ -60,14 +61,15 @@ void *Error_Handling(void *pointer, int LineNumber, char *FileName)
 
 void fileTransfer(int client_socket ,char *file_name)
 {
+   printf("---->begin file transfter to client %d\n", client_socket);
    int status = sendFile(file_name , client_socket);
    if(status <0 ){
       perror("file is send :");
       remove(file_name);
       return;
    }
-  
-   printf("Data is send to client \n");
+   printf("---->file transfer ->sucess send to %d\n", client_socket);
+
    remove(file_name);
 }
 
@@ -92,7 +94,7 @@ void fileReciver(int client_id, int network_socket)
    char *dir_path = "."; // Current directory
    int file_count  = getNumberofFileInFolder(dir_path);
    recv(network_socket, &size_of_file, sizeof(size_of_file), 0);
-   printf("file server %ld\n", size_of_file);
+   printf("file size : %.4fKB\n", (size_of_file)/1024.0);
    char file_name[1024] ;
    snprintf(file_name ,sizeof(file_name)  , "temp_%d.zip" ,file_count );
 
@@ -109,9 +111,9 @@ void fileReciver(int client_id, int network_socket)
       curr_size += byte_size;
    }
    fclose(file);
-
+   printf("file reach to sever -> sender %d\n", network_socket  );
    fileTransfer(client_id , file_name);
-   printf("file completly send to user %d\n", client_id);
+  
 }
 void *connectReceverToClient(void *node)
 {
@@ -131,27 +133,24 @@ void *connectReceverToClient(void *node)
    }
    if (n == 0)
    {
-      ClientList *element = findClient(header, curr_node);
-      if (element != NULL)
-         printf("found element\n");
       header = removeClient(header, curr_node);
-      element = findClient(header, curr_node);
+      ClientList *element = findClient(header, curr_node);
 
       if (element == NULL)
-         printf("node removed\n");
+         printf(" -- client disconnected %d -- \n" ,curr_node->client_id );
 
       ClientList *curr = header;
       while (curr != NULL)
       {
 
-         char disconnect_messag[1024] = "user id - ";
-         snprintf(disconnect_messag, 32, "connecte id - %d", curr->client_id);
-         broadCastToALLUser(disconnect_messag, curr);
+         char disconnect_messag[1024];
+         snprintf(disconnect_messag, 50, " -- user %d is disconnected -- ", curr->client_id);
+         sendMessage(curr->client_id ,disconnect_messag );
 
          curr = curr->next_user;
       }
 
-      perror("client disconnect ");
+      
    }
 }
 void clear()

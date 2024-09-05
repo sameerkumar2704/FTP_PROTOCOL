@@ -47,7 +47,6 @@ int sendFile(char *file_name,int client_socket  )
         {
             return -1;
         }
-        printf("%s\n", server_message);
     }
     fclose(f);
     return 1;

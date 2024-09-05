@@ -22,3 +22,20 @@ int recvMessage(int id, char *buffer, size_t buffer_size)
 {
     return recv(id, buffer, 1024, 0);
 }
+long recvInteger(int socket_id  ){
+    long data ;
+    int status = recv(socket_id, &data, sizeof(data), 0);
+    if(status == -1){
+        return -1;
+    }
+    return data;
+}
+
+long sendInteger(int socket_id , long value ){
+    long data = value;
+    int status = send(socket_id, &data, sizeof(data), 0);
+    if(status == -1){
+        return -1;
+    }
+    return 1;
+}

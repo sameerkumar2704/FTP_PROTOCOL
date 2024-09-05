@@ -15,7 +15,9 @@ enum
 {
    SHOW_ALL_USERS,
    READ_TO_RECIVE_DATA,
-   SERVER_SHUT_DOWN 
+   SERVER_SHUT_DOWN,
+   SELECT_USER,
+   ABORT_DATA_SENDING,
 };
 int server_network = -1; // server id
 
@@ -64,7 +66,7 @@ void *Error_Handling(void *pointer, int LineNumber, char *FileName)
 void sendFile(int client_socket)
 {
    char server_message[1024];
-   FILE *f = fopen("send_file.zip", "rb");
+   FILE *f = fopen("temp.zip", "rb");
    fseek(f, 0, SEEK_END);
    long file_size = ftell(f);
    fseek(f, 0, SEEK_SET);
@@ -85,6 +87,7 @@ void sendFile(int client_socket)
    }
    printf("Data is send to client \n");
    fclose(f);
+   remove("temp.zip");
 }
 
 void sendRespnceToCommand(int command, int socket, ClientList *node)
@@ -94,13 +97,37 @@ void sendRespnceToCommand(int command, int socket, ClientList *node)
    case SHOW_ALL_USERS:
       sendListOfUser(socket, node);
       break;
-   case READ_TO_RECIVE_DATA:
-      sendMessage(socket, "yes");
-      sendFile(socket);
+   case SELECT_USER:
+      sendMessage(socket, "provide-user-id");
       break;
    default:
       sendMessage(socket, "404 command not found");
    }
+}
+void fileReciver(int client_id, int network_socket)
+{
+   long  size_of_file ;
+   char buffer[1024];
+
+   recv(network_socket, &size_of_file, sizeof(size_of_file), 0);
+   printf("file server %ld\n", size_of_file);
+   FILE *file = fopen("temp.zip", "wb");
+   long curr_size = 0;
+   char message[1024] = "yes";
+   sendMessage(client_id, message);
+  
+   char* data[size_of_file/1024];
+   int i = 0;
+   while (curr_size < size_of_file)
+   {
+      size_t byte_size = recv(network_socket, buffer, sizeof(buffer), 0);
+      fwrite(buffer, sizeof(char), byte_size, file);
+      curr_size += byte_size;
+   }
+   fclose(file);
+ 
+   sendFile(client_id);
+   printf("file completly send to user %d", client_id);
 }
 void *connectReceverToClient(void *node)
 {
@@ -108,9 +135,16 @@ void *connectReceverToClient(void *node)
    int client_id = curr_node->client_id;
    int command = -1;
    int n = -1;
+   int selected_user_to_send_data;
    while ((n = recv(client_id, &command, sizeof(command), 0)) > 0)
    {
       sendRespnceToCommand(command, client_id, curr_node);
+      if (command == SELECT_USER)
+      {
+         recv(client_id, &selected_user_to_send_data, sizeof(selected_user_to_send_data), 0);
+         fileReciver(selected_user_to_send_data, client_id);
+         printf("end\n");
+      }
    }
    if (n == 0)
    {
@@ -137,9 +171,11 @@ void *connectReceverToClient(void *node)
       perror("client disconnect ");
    }
 }
-void clear(){
-   while(header!=NULL){
-      sendMessage(header->client_id , "server-down");
+void clear()
+{
+   while (header != NULL)
+   {
+      sendMessage(header->client_id, "server-down");
       header = header->next_user;
    }
    printf("\nStopping server...\n");
@@ -165,7 +201,6 @@ int createServer()
       printf("Address is aleary in user\n");
       return -1;
    }
-   zip_files("send_file.zip", "./send_file.txt", "send_file.txt");
    printf("server live at port  : %d\n", PORT_NO);
    int isListening = listen(server_network, 10);
    if (isListening == -1)
@@ -197,12 +232,12 @@ int createServer()
 
 void signal_handler(int sig)
 {
-clear();
+   clear();
 }
 int main()
 {
    signal(SIGINT, signal_handler);
-   signal(SIGTERM  , signal_handler);
+   signal(SIGTERM, signal_handler);
    createServer();
    return -1;
 }

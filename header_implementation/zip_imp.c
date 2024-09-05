@@ -15,7 +15,7 @@ void unzip_file(char *dir){
     mkdir(dir , 0775);
     char path[1024];
   
-    zip_t* arch = zip_open("./result/file.zip" , 0, &errorp);
+    zip_t* arch = zip_open("./client_data/file.zip" , 0, &errorp);
     struct zip_stat* finfo = calloc(256 , sizeof(int));
     zip_stat_init(finfo);
     zip_file_t* fd = NULL;
@@ -34,7 +34,7 @@ void unzip_file(char *dir){
         fwrite(txt , sizeof(char) ,size , file );
         fclose(file);
         count++;
-        printf("%d %s\n" , count , txt);
+       
         free(txt);
     }
 }

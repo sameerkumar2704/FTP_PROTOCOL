@@ -9,14 +9,31 @@
 #include "../headers/reuse_func.h"
 #include <dirent.h>
 
+// constnat data accross file
+
 extern int errno;
 #define PORT_NO 9002
 #define LINE_NUMBER __LINE__
 #define FILE_NAME __FILE__
+#define buffer_size 1024
+ClientList *header = NULL;
+// ***********
 
 int server_network = -1; // server id
 
-ClientList *header = NULL;
+// function declaration 
+void sendListOfUser(int socket ,ClientList *node);
+void broadCastToALLUser(char *message , ClientList*parent);
+void *Error_Handling(void *pointer, int LineNumber, char *FileName);
+void fileTransfer(int client_socket, char *file_name);
+void sendRespnceToCommand(int command, int socket, ClientList *node);
+void fileReciver(int client_id, int network_socket);
+void *connectReceverToClient(void *node);
+void clear();
+int createServer();
+void signal_handler(int sig);
+// ****************
+
 void sendListOfUser(int socket, ClientList *node)
 {
    ClientList *curr = header;
@@ -25,12 +42,12 @@ void sendListOfUser(int socket, ClientList *node)
    {
       if (curr != node)
       {
-         char buffer[1024];
-         snprintf(buffer, sizeof(buffer), " %d. reciver address %d",count+1 ,  curr->client_id);
+         char buffer[buffer_size];
+         snprintf(buffer, sizeof(buffer), " %d. reciver address %d", count + 1, curr->client_id);
          sendMessage(socket, buffer);
          count++;
       }
-     
+
       curr = curr->next_user;
    }
    if (count == 0)
@@ -59,11 +76,12 @@ void *Error_Handling(void *pointer, int LineNumber, char *FileName)
    return pointer;
 }
 
-void fileTransfer(int client_socket ,char *file_name)
+void fileTransfer(int client_socket, char *file_name)
 {
    printf("---->begin file transfter to client %d\n", client_socket);
-   int status = sendFile(file_name , client_socket);
-   if(status <0 ){
+   int status = sendFile(file_name, client_socket);
+   if (status < 0)
+   {
       perror("file is send :");
       remove(file_name);
       return;
@@ -90,18 +108,22 @@ void sendRespnceToCommand(int command, int socket, ClientList *node)
 void fileReciver(int client_id, int network_socket)
 {
    long size_of_file;
-   char buffer[1024];
+   char buffer[buffer_size];
    char *dir_path = "."; // Current directory
-   int file_count  = getNumberofFileInFolder(dir_path);
+   int file_count = getNumberofFileInFolder(dir_path);
    recv(network_socket, &size_of_file, sizeof(size_of_file), 0);
-   printf("file size : %.4fKB\n", (size_of_file)/1024.0);
-   char file_name[1024] ;
-   snprintf(file_name ,sizeof(file_name)  , "temp_%d.zip" ,file_count );
+   printf("file size : %.4fKB\n", (size_of_file) / 1024.0);
+   char file_name[buffer_size];
+   snprintf(file_name, sizeof(file_name), "temp_%d.zip", file_count);
 
    FILE *file = fopen(file_name, "wb");
    long curr_size = 0;
-   char message[1024] = "sending-file";
+   const char *data = "sending-file";
+   char *message = (char *)malloc(strlen(data) + 1);
+   strcpy(message, data);
+
    sendMessage(client_id, message);
+
 
    int i = 0;
    while (curr_size < size_of_file)
@@ -111,9 +133,9 @@ void fileReciver(int client_id, int network_socket)
       curr_size += byte_size;
    }
    fclose(file);
-   printf("file reach to sever -> sender %d\n", network_socket  );
-   fileTransfer(client_id , file_name);
-  
+   printf("file reach to sever -> sender %d\n", network_socket);
+   fileTransfer(client_id, file_name);
+   free(message);
 }
 void *connectReceverToClient(void *node)
 {
@@ -137,20 +159,20 @@ void *connectReceverToClient(void *node)
       ClientList *element = findClient(header, curr_node);
 
       if (element == NULL)
-         printf(" -- client disconnected %d -- \n" ,curr_node->client_id );
+         printf(" -- client disconnected %d -- \n", curr_node->client_id);
 
       ClientList *curr = header;
       while (curr != NULL)
       {
 
-         char disconnect_messag[1024];
-         snprintf(disconnect_messag, 50, " -- user %d is disconnected -- ", curr->client_id);
-         sendMessage(curr->client_id ,disconnect_messag );
+
+         char *disconnect_message = (char *)malloc(buffer_size );
+         snprintf(disconnect_message, 50, " -- user %d is disconnected -- ", curr->client_id);
+         sendMessage(curr->client_id, disconnect_message);
+         free(disconnect_message);
 
          curr = curr->next_user;
       }
-
-      
    }
 }
 void clear()

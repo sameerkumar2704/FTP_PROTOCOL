@@ -15,6 +15,25 @@ int network_socket = -1;
 int selected_id = -1;
 char dir[buffer_size];
 char file_name[buffer_size];
+
+// ************
+
+
+// function declaration
+
+int findingCommandType(char *command);
+int get_UserId(char *command);
+void zip_file_to_send_server(char *sourc_file , char*file_name);
+void get_detail_of_file_and_path_name(int commandType);
+void sendCommandToServer(int commandType);
+void fileReciver();
+void closeSocket();
+void *serverResponseHandler();
+int createClient();
+
+// ***********
+
+
 int get_UserId(char *command)
 {
     int digit = 0;
@@ -48,7 +67,7 @@ int findingCommandType(char *command)
 
     return -1;
 }
-void zipe_file_to_send_server(char *sourc_file, char *file_name)
+void zip_file_to_send_server(char *sourc_file, char *file_name)
 {
     // compressing file before transfer
     zip_files("transfer_file.zip", sourc_file, file_name);
@@ -117,11 +136,13 @@ void fileReciver()
     fclose(file);
     unzip_file("./result", file_name);
 }
+
 void closeSocket()
 {
     shutdown(network_socket, SHUT_RDWR);
     close(network_socket);
 }
+
 void *serverResponseHandler()
 {
     char buffer[buffer_size];
@@ -147,7 +168,7 @@ void *serverResponseHandler()
         {
             send(network_socket, &selected_id, sizeof(selected_id), 0);
 
-            zipe_file_to_send_server(dir, file_name);
+            zip_file_to_send_server(dir, file_name);
         }
         else
         {
@@ -171,7 +192,7 @@ int createClient()
         close(network_socket);
         return -1;
     }
-    printf("---> client connect to server at : port %d\n" , PORT_NO);
+    printf("---> client connect to server at : port %d\n", PORT_NO);
 
     return 1;
 }

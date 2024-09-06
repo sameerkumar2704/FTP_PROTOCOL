@@ -10,7 +10,7 @@
 1. [Project Overview](#project-overview)
 2. [Project Proposal](#project-proposal)
 2. [Project Goal](#goal)
-3. [Structure and Design](#filestructer)
+3. [Structure and Design](#file-structure)
 ## Project Overview
 🧑🏽‍💻 For impelementation of this project i used c as  programming language . The 🗃️ FTP protocol operates on a client-server model where the client requests file operations and the server provides the requested services. This implementation covers the essential functionalities of FTP, including connecting to a server, transferring files, and managing directory structures.
 ### Key Components
@@ -116,6 +116,10 @@ client.out
 server.out
 ```
 # Tutorial
+## Custom-Commands 
+- **show-all-users**
+- **select-client**
+- **exit**
    
 
 https://github.com/user-attachments/assets/67e0b63d-0dd2-4fb9-a766-33322f42a4d2

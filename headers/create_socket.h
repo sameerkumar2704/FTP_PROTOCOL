@@ -11,6 +11,7 @@ enum
     SERVER_SHUT_DOWN,
     SELECT_USER,
     ABORT_DATA_SENDING,
+    SAME_USER
 };
 
 int createTcpSocket();

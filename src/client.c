@@ -1,6 +1,4 @@
-
 #include "./client_interface.h"
-
 
 #define PORT_NO 9002
 #define buffer_size 1024
@@ -12,9 +10,6 @@ char dir[buffer_size];
 char file_name[buffer_size];
 
 // ************
-
-
-
 
 int get_UserId(char *command)
 {
@@ -44,6 +39,8 @@ int findingCommandType(char *command)
     if (!strncmp(command, "select-client", strlen("select-client")))
     {
         selected_id = get_UserId(command);
+        if (selected_id == network_socket)
+            return SAME_USER;
         return SELECT_USER;
     }
 
@@ -70,9 +67,16 @@ void get_detail_of_file_and_path_name(int commandType)
     printf("enter path name : \n");
     fgets(dir, buffer_size, stdin);
     dir[strcspn(dir, "\n")] = '\0';
+    FILE *file_1 = fopen(dir, "r");
+    if (file_1 == NULL)
+    {
+        printf(" *** file not found *** \n");
+        return;
+    }
     printf("enter file name : \n");
     fgets(file_name, buffer_size, stdin);
     file_name[strcspn(file_name, "\n")] = '\0';
+
     send(network_socket, &commandType, sizeof(commandType), 0);
 }
 void sendCommandToServer(int commandType)
@@ -88,6 +92,10 @@ void sendCommandToServer(int commandType)
         break;
     case SELECT_USER:
         get_detail_of_file_and_path_name(commandType);
+        break;
+    case SAME_USER:
+        printf("---> This your user id !!\n");
+        fflush(stdout);
         break;
     default:
         printf("404 command not found \n");
@@ -173,6 +181,7 @@ int createClient()
         close(network_socket);
         return -1;
     }
+    printf("---> your user id : %d\n" , network_socket);
     printf("---> client connect to server at : port %d\n", PORT_NO);
 
     return 1;
@@ -180,7 +189,6 @@ int createClient()
 
 int main()
 {
-
     if (createClient() == -1)
     {
         printf("server is not connect \n");

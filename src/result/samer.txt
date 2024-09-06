@@ -1,0 +1,24 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+int main() {
+    char buffer[1024];
+    int bytesRead;
+
+    // Prompt user for input
+    printf("Enter a string: ");
+    fflush(stdout); // Ensure the prompt is printed before reading input
+
+    // Read input from the standard input (file descriptor 0)
+    bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+
+    if (bytesRead >= 0) {
+        buffer[bytesRead] = '\0'; // Null-terminate the string
+        printf("You entered: %s", buffer);
+    } else {fasfdsfdsfasf
+        perror("read");
+    }
+
+    return 0;
+}

@@ -63,6 +63,10 @@ FTP_PROTOCOL/
 ├── src/
 │   ├── client.c
 │   ├── server.c
+|   ├── client_interface.h
+│   ├── server_interface.h
+|   ├── create_client.sh
+│   ├── craete_server.sh
 │   ├── client_data/
 │   ├── result/
 │   └── server_data/
@@ -94,15 +98,26 @@ cd FTP_PROTOCOL
 ```bash
 gcc client.c -o client.out ../headers/*.h -lzip -pthread
 ```
+or
+
+```bash
+src/create_server.h
+```
 2. for server 
 ```bash
 gcc server.c -o server.out ../headers/*.h -lzip -pthread
+```
+or
+
+```bash
+src/create_client.h
 ```
 ### Start Program
 ```bash
 client.out
 server.out
 ```
+# Tutorial
    
 
     

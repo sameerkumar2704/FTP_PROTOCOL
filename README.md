@@ -18,7 +18,7 @@
 ### Key Components
 
 ### 1. Client-Server Architecture
-   - **Client**: Sends requests to the server for file operations, such as uploading, downloading, listing files, or deleting files.
+   - **Client**: Sends requests to the server for file operations, such as uploading, downloading, listing files.
    - **Server**: Listens for incoming client connections, processes requests, and performs the required file operations.
 
 ### 2. Networking

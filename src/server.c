@@ -1,12 +1,12 @@
 #include <stdio.h>
-#include "./headers/create_socket.h"
+#include "../headers/create_socket.h"
 #include <errno.h>
 #include <signal.h>
 #include "string.h"
 #include <pthread.h>
-#include "./headers/store_user.h"
-#include "./headers/file_zip.h"
-#include "./headers/reuse_func.h"
+#include "../headers/store_user.h"
+#include "../headers/file_zip.h"
+#include "../headers/reuse_func.h"
 #include <dirent.h>
 
 extern int errno;

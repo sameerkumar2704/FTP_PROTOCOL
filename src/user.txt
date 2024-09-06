@@ -16,7 +16,7 @@ int main() {
     if (bytesRead >= 0) {
         buffer[bytesRead] = '\0'; // Null-terminate the string
         printf("You entered: %s", buffer);
-    } else {
+    } else {fasfdsfdsfasf
         perror("read");
     }
 

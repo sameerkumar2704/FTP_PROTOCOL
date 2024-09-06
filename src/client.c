@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include "./headers/create_socket.h"
+#include "../headers/create_socket.h"
 #include "string.h"
 #include <pthread.h>
-#include "./headers/file_zip.h"
-#include "./headers/reuse_func.h"
+#include "../headers/file_zip.h"
+#include "../headers/reuse_func.h"
 #include <zip.h>
 #include <sys/stat.h>
 
@@ -99,11 +99,6 @@ void fileReciver()
     printf("file size : %.4fKB\n", (size_of_file) / 1024.0);
     char *dir_path = "./client_data"; // Current directory
     int file_count = getNumberofFileInFolder(dir_path);
-    if (file_count < 0)
-    {
-        printf("file is counted\n");
-        return;
-    }
     char file_name[1024];
     snprintf(file_name, sizeof(file_name), "./client_data/file_%d.zip", file_count);
     FILE *file = fopen(file_name, "wb");

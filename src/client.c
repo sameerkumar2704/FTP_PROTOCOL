@@ -1,11 +1,6 @@
-#include <stdio.h>
-#include "../headers/create_socket.h"
-#include "string.h"
-#include <pthread.h>
-#include "../headers/file_zip.h"
-#include "../headers/reuse_func.h"
-#include <zip.h>
-#include <sys/stat.h>
+
+#include "./client_interface.h"
+
 
 #define PORT_NO 9002
 #define buffer_size 1024
@@ -19,19 +14,6 @@ char file_name[buffer_size];
 // ************
 
 
-// function declaration
-
-int findingCommandType(char *command);
-int get_UserId(char *command);
-void zip_file_to_send_server(char *sourc_file , char*file_name);
-void get_detail_of_file_and_path_name(int commandType);
-void sendCommandToServer(int commandType);
-void fileReciver();
-void closeSocket();
-void *serverResponseHandler();
-int createClient();
-
-// ***********
 
 
 int get_UserId(char *command)
@@ -72,7 +54,6 @@ void zip_file_to_send_server(char *sourc_file, char *file_name)
     // compressing file before transfer
     zip_files("transfer_file.zip", sourc_file, file_name);
     printf("--> %s is zipped as transfer_file.zip\n", file_name);
-
     // calling custom functions from reuse_func.h
     int status = sendFile("./transfer_file.zip", network_socket);
     if (status < 0)

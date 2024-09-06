@@ -20,7 +20,7 @@ int sendMessage(int id, char *message)
 }
 int recvMessage(int id, char *buffer, size_t buffer_size)
 {
-    return recv(id, buffer, 1024, 0);
+    return recv(id, buffer, buffer_size , 0);
 }
 long recvInteger(int socket_id  ){
     long data ;

@@ -15,7 +15,7 @@ int network_socket = -1;
 int selected_id = -1;
 char dir[buffer_size];
 char file_name[buffer_size];
-int get_UserId()
+int get_UserId(char *command)
 {
     int digit = 0;
     int i = 0;
@@ -32,6 +32,7 @@ int get_UserId()
         digit = digit * 10 + (command[i] - '0');
         i++;
     }
+    return digit;
 }
 int findingCommandType(char *command)
 {
@@ -41,20 +42,7 @@ int findingCommandType(char *command)
         return READ_TO_RECIVE_DATA;
     if (!strncmp(command, "select-client", strlen("select-client")))
     {
-        int i = 0;
-        while (i < strlen(command))
-        {
-            if (command[i] == ' ')
-                break;
-            i++;
-        }
-        selected_id = 0;
-        i++;
-        while (i < strlen(command) - 1)
-        {
-            selected_id = selected_id * 10 + (command[i] - '0');
-            i++;
-        }
+        selected_id = get_UserId(command);
         return SELECT_USER;
     }
 
@@ -183,6 +171,7 @@ int createClient()
         close(network_socket);
         return -1;
     }
+    printf("---> client connect to server at : port %d\n" , PORT_NO);
 
     return 1;
 }

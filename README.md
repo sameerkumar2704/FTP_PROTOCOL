@@ -3,8 +3,6 @@
 
 
 
-## Screenshots
-
 ![App Screenshot](https://mac.eltima.com/images/upload/commander/articles/what-is-ftp/ftp-diagram.png)
 
 
@@ -18,7 +16,7 @@
 ### Key Components
 
 ### 1. Client-Server Architecture
-   - **Client**: Sends requests to the server for file operations, such as uploading, downloading, listing files, or deleting files.
+   - **Client**: Sends requests to the server for file operations, such as uploading, downloading, listing files.
    - **Server**: Listens for incoming client connections, processes requests, and performs the required file operations.
 
 ### 2. Networking
@@ -83,7 +81,7 @@ FTP_PROTOCOL/
 ### Prerequisites
   - **GCC Complier: Ensure you have the GCC Compile installed on your system**
   - **Linux the file used in this project are linux specific**
-  - **Library required to install lzip , pthread**
+  - **Libraries to install: lzip, pthread**
 ### Cloning the Repository
 1. #### clone the repository from git hub
 ```bash
@@ -119,5 +117,9 @@ server.out
 ```
 # Tutorial
    
+
+https://github.com/user-attachments/assets/67e0b63d-0dd2-4fb9-a766-33322f42a4d2
+
+
 
     

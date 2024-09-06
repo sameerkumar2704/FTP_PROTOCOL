@@ -15,7 +15,24 @@ int network_socket = -1;
 int selected_id = -1;
 char dir[buffer_size];
 char file_name[buffer_size];
-
+int get_UserId()
+{
+    int digit = 0;
+    int i = 0;
+    while (i < strlen(command))
+    {
+        if (command[i] == ' ')
+            break;
+        i++;
+    }
+    selected_id = 0;
+    i++;
+    while (i < strlen(command) - 1)
+    {
+        digit = digit * 10 + (command[i] - '0');
+        i++;
+    }
+}
 int findingCommandType(char *command)
 {
     if (!strcmp(command, "show-all-users\n"))
@@ -111,7 +128,6 @@ void fileReciver()
     }
     fclose(file);
     unzip_file("./result", file_name);
-    
 }
 void closeSocket()
 {

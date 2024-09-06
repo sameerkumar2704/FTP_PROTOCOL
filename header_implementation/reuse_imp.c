@@ -28,13 +28,19 @@ int getNumberofFileInFolder(char *dir_path)
     return file_count;
 }
 
-int sendFile(char *file_name,int client_socket  )
+long getFile_size(FILE *f)
 {
-    char server_message[1024];
-    FILE *f = fopen(file_name, "rb");
     fseek(f, 0, SEEK_END);
     long file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
+    return file_size;
+}
+
+int sendFile(char *file_name, int client_socket)
+{
+    char server_message[1024];
+    FILE *f = fopen(file_name, "rb");
+    long file_size = getFile_size(f);
     send(client_socket, &file_size, sizeof(file_size), 0);
     int size;
     while (1)

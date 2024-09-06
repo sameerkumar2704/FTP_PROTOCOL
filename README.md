@@ -83,7 +83,7 @@ FTP_PROTOCOL/
 ### Prerequisites
   - **GCC Complier: Ensure you have the GCC Compile installed on your system**
   - **Linux the file used in this project are linux specific**
-  - **Library required to install lzip , pthread**
+  - **Libraries to install: lzip, pthread**
 ### Cloning the Repository
 1. #### clone the repository from git hub
 ```bash

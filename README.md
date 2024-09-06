@@ -3,8 +3,6 @@
 
 
 
-## Screenshots
-
 ![App Screenshot](https://mac.eltima.com/images/upload/commander/articles/what-is-ftp/ftp-diagram.png)
 
 

@@ -3,16 +3,13 @@
 
 extern int errno;
 #define PORT_NO 9002
-#define LINE_NUMBER __LINE__
-#define FILE_NAME __FILE__
 #define buffer_size 1024
 ClientList *header = NULL;
 // ***********
 
 int server_network = -1; // server id
 
-
-
+// providing list of user connect to server 
 void sendListOfUser(int socket, ClientList *node)
 {
    ClientList *curr = header;
@@ -23,7 +20,7 @@ void sendListOfUser(int socket, ClientList *node)
       {
          char buffer[buffer_size];
          snprintf(buffer, sizeof(buffer), " %d. reciver address %d", count + 1, curr->client_id);
-         sendMessage(socket, buffer);
+         send(socket, buffer, sizeof(buffer), 0);
          count++;
       }
 
@@ -32,7 +29,7 @@ void sendListOfUser(int socket, ClientList *node)
    if (count == 0)
       sendMessage(socket, "no reciver found");
 }
-
+// broadcast a message to user
 void broadCastToALLUser(char *message, ClientList *parent)
 {
    ClientList *curr = header;
@@ -40,21 +37,13 @@ void broadCastToALLUser(char *message, ClientList *parent)
    {
       if (curr != parent)
       {
-         sendMessage(curr->client_id, message);
+         send(curr->client_id, message, strlen(message), 0);
       }
       curr = curr->next_user;
    }
 }
-void *Error_Handling(void *pointer, int LineNumber, char *FileName)
-{
-   if (pointer == NULL)
-   {
-      printf("Error in %s at Line : %d \n%s", FileName, LineNumber, strerror(errno));
-      return NULL;
-   }
-   return pointer;
-}
 
+// sending file
 void fileTransfer(int client_socket, char *file_name)
 {
    printf("---->begin file transfter to client %d\n", client_socket);
@@ -103,7 +92,6 @@ void fileReciver(int client_id, int network_socket)
 
    sendMessage(client_id, message);
 
-
    int i = 0;
    while (curr_size < size_of_file)
    {
@@ -135,18 +123,17 @@ void *connectReceverToClient(void *node)
    if (n == 0)
    {
       header = removeClient(header, curr_node);
-      ClientList *element = findClient(header, curr_node);
+      ClientList *dis_c_element = findClient(header, curr_node);
 
-      if (element == NULL)
+      if (dis_c_element == NULL)
          printf(" -- client disconnected %d -- \n", curr_node->client_id);
 
       ClientList *curr = header;
       while (curr != NULL)
       {
 
-
-         char *disconnect_message = (char *)malloc(buffer_size );
-         snprintf(disconnect_message, 50, " -- user %d is disconnected -- ", curr->client_id);
+         char *disconnect_message = (char *)malloc(buffer_size);
+         snprintf(disconnect_message, 50, "disconnect-user %d", client_id);
          sendMessage(curr->client_id, disconnect_message);
          free(disconnect_message);
 
@@ -165,6 +152,18 @@ void clear()
    shutdown(server_network, SHUT_RDWR);
    close(server_network);
    exit(0);
+}
+void sendDataToNewClient(int client_socket)
+{
+
+   ClientList *node = header;
+   char message[buffer_size];
+   while (node != NULL)
+   {
+      snprintf(message, buffer_size, "connected-user %d", node->client_id);
+      send(client_socket, message, sizeof(message), 0);
+      node = node->next_user;
+   }
 }
 int createServer()
 
@@ -197,6 +196,10 @@ int createServer()
       struct sockaddr_in tem_address;
       int client_socket = accept(server_network, NULL, NULL);
       ClientList *node = createClientNode(client_socket, &tem_address);
+      char message[buffer_size];
+      snprintf(message, buffer_size, "new-user %d", client_socket);
+      broadCastToALLUser(message, NULL);
+      sendDataToNewClient(client_socket);
       if (header == NULL)
       {
          header = node;

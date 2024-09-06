@@ -59,3 +59,34 @@ ClientList *removeClient(ClientList *header, ClientList* disconnect_client)
     prev->next_user = curr->next_user;
     return header;
 }
+ClientList *removeClientById(ClientList *header, int  disconnect_client)
+{
+    if(header->client_id == disconnect_client) return header->next_user;
+    ClientList *curr = header;
+    ClientList *prev = NULL;
+    while (curr != NULL)
+    {
+        if (curr->client_id == disconnect_client)
+        {
+            break;
+        }
+        prev = curr;
+        curr = curr->next_user;
+    }
+    if (prev == NULL)
+        return curr->next_user;
+
+    prev->next_user = curr->next_user;
+    return header;
+}
+ClientList *findClientById(ClientList *header, int target_user)
+{
+    ClientList *curr = header;
+    while (curr != NULL)
+    {
+        if (curr->client_id == target_user)
+            return curr;
+        curr = curr->next_user;
+    }
+    return NULL;
+}

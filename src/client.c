@@ -8,10 +8,12 @@ int network_socket = -1;
 int selected_id = -1;
 char dir[buffer_size];
 char file_name[buffer_size];
+ClientList *header = NULL;
 
 // ************
 
-int get_UserId(char *command)
+// extrating number from string like -> connected-user 9 getting 9
+int get_UserId(char *command, int reduce)
 {
     int digit = 0;
     int i = 0;
@@ -23,13 +25,15 @@ int get_UserId(char *command)
     }
     selected_id = 0;
     i++;
-    while (i < strlen(command) - 1)
+    while (i < strlen(command) - reduce)
     {
         digit = digit * 10 + (command[i] - '0');
         i++;
     }
     return digit;
 }
+
+// convorting string input command to enum
 int findingCommandType(char *command)
 {
     if (!strcmp(command, "show-all-users\n"))
@@ -38,7 +42,12 @@ int findingCommandType(char *command)
         return READ_TO_RECIVE_DATA;
     if (!strncmp(command, "select-client", strlen("select-client")))
     {
-        selected_id = get_UserId(command);
+        selected_id = get_UserId(command, 1);
+        ClientList *user = findClientById(header, selected_id);
+        if (user == NULL)
+        {
+            return USER_NO_FOUND;
+        }
         if (selected_id == network_socket)
             return SAME_USER;
         return SELECT_USER;
@@ -46,6 +55,7 @@ int findingCommandType(char *command)
 
     return -1;
 }
+//zip
 void zip_file_to_send_server(char *sourc_file, char *file_name)
 {
     // compressing file before transfer
@@ -62,6 +72,8 @@ void zip_file_to_send_server(char *sourc_file, char *file_name)
     printf("--> transfer_file.zip is send to server \n");
     remove("./transfer_file.zip");
 }
+
+// get user input of file name and path
 void get_detail_of_file_and_path_name(int commandType)
 {
     printf("enter path name : \n");
@@ -79,6 +91,7 @@ void get_detail_of_file_and_path_name(int commandType)
 
     send(network_socket, &commandType, sizeof(commandType), 0);
 }
+// checking command type
 void sendCommandToServer(int commandType)
 {
 
@@ -97,12 +110,16 @@ void sendCommandToServer(int commandType)
         printf("---> This your user id !!\n");
         fflush(stdout);
         break;
+    case USER_NO_FOUND:
+        printf("--> user not found !!\n");
+        break;
     default:
         printf("404 command not found \n");
         break;
     }
 }
 
+// file reciving 
 void fileReciver()
 {
     long size_of_file = 0;
@@ -132,6 +149,7 @@ void closeSocket()
     close(network_socket);
 }
 
+// handler function of server running on multi thread function pointer
 void *serverResponseHandler()
 {
     char buffer[buffer_size];
@@ -162,7 +180,27 @@ void *serverResponseHandler()
         else
         {
             printf("server res :\n----> %s\n", buffer);
-            if (!strcmp(buffer, "sending-file"))
+            if (!strncmp(buffer, "connected-user", strlen("connected-user")) || !strncmp(buffer, "new-user", strlen("new-user")))
+            {
+                int id = get_UserId(buffer, 0);
+                ClientList *user = createClientNode(id, NULL);
+                if (header == NULL)
+                {
+                    header = user;
+                }
+                else
+                {
+                    addNewClient(header, user);
+                }
+            }
+            else if (!strncmp(buffer, "disconnect-user", strlen("disconnect-user")))
+            {
+
+                int id = get_UserId(buffer, 0);
+                if (header != NULL)
+                    header = removeClientById(header, id);
+            }
+            else if (!strcmp(buffer, "sending-file"))
             {
                 fileReciver();
             }
@@ -181,7 +219,7 @@ int createClient()
         close(network_socket);
         return -1;
     }
-    printf("---> your user id : %d\n" , network_socket);
+    
     printf("---> client connect to server at : port %d\n", PORT_NO);
 
     return 1;
